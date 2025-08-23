@@ -46,7 +46,7 @@ class WelcomeScreen extends StatelessWidget {
 
                   // Welcome Text
                   Text(
-                    'Welcome To CloudAQI',
+                    'AQI Prediction Model',
                     style: TextStyle(
                       fontSize: 28,
                       fontWeight: FontWeight.bold,
@@ -78,21 +78,7 @@ class WelcomeScreen extends StatelessWidget {
                   ),
                   SizedBox(height: 20),
 
-                  // Skip Button
-                  TextButton(
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => DashboardScreen()),
-                    ),
-                    child: Text(
-                      'Skip >>',
-                      style: TextStyle(
-                        color: Colors.white70,
-                        fontSize: 16,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
+
 
 
                 ],

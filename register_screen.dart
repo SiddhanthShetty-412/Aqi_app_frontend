@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'dashboard_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -9,15 +11,45 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
-
-  String? hasDisease;
   String? selectedDisease;
+  String message = '';
 
   final List<String> diseaseOptions = [
     'Lung Disease/Asthma',
     'Old Age',
-    'Normal People'
+    'Normal People',
   ];
+
+  Future<void> registerUser() async {
+    const String apiUrl = String.fromEnvironment('FLUTTER_ENV') == 'emulator'
+        ? 'http://10.0.2.2:5000/signup'
+        : 'http://10.68.121.252:5000/signup';
+
+    final response = await http.post(
+      Uri.parse(apiUrl),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'username': usernameController.text.trim(),
+        'password': passwordController.text.trim(),
+        'category': selectedDisease?.trim(),
+      }),
+    );
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final data = json.decode(response.body);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => DashboardScreen(username: usernameController.text.trim()),
+        ),
+      );
+    } else {
+      final data = json.decode(response.body);
+      setState(() {
+        message = data['error'] ?? 'Registration failed';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,54 +73,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  'Register:',
-                  style: TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
+                  'Register',
+                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
                 SizedBox(height: 20),
-
-                // Username
-                buildTextField('USERNAME', usernameController, false),
-
-                // Password
+                buildTextField('Username', usernameController, false),
                 buildTextField('Password', passwordController, true),
-
-                // Do you have any diseases? (Yes/No Dropdown)
-
-
-                // Disease Selection Dropdown
                 buildDropdown<String>(
                   label: 'Select from these categories:',
                   value: selectedDisease,
                   items: diseaseOptions,
-                  onChanged: (value) {
-                    setState(() {
-                      selectedDisease = value;
-                    });
-                  },
+                  onChanged: (value) => setState(() => selectedDisease = value),
                 ),
-
+                if (message.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    child: Text(message, style: TextStyle(color: Colors.redAccent)),
+                  ),
                 SizedBox(height: 20),
-
-                // Submit Button
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: Colors.deepPurple,
-                    padding:
-                    EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                    padding: EdgeInsets.symmetric(horizontal: 40, vertical: 15),
                     textStyle: TextStyle(fontSize: 16),
                   ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => DashboardScreen()),
-                    );
-                  },
-                  child: Text('Enter'),
+                  onPressed: registerUser,
+                  child: Text('Register'),
                 ),
               ],
             ),
@@ -98,23 +109,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  Widget buildTextField(
-      String label, TextEditingController controller, bool obscureText) {
+  Widget buildTextField(String label, TextEditingController controller, bool isPassword) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextField(
         controller: controller,
-        obscureText: obscureText,
+        obscureText: isPassword,
         style: TextStyle(color: Colors.white),
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(color: Colors.white70),
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.white38),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.white),
-          ),
+          enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white38)),
+          focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white)),
         ),
       ),
     );
@@ -135,20 +141,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
         decoration: InputDecoration(
           labelText: label,
           labelStyle: TextStyle(color: Colors.white70),
-          enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.white38),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide: BorderSide(color: Colors.white),
-          ),
+          enabledBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white38)),
+          focusedBorder: OutlineInputBorder(borderSide: BorderSide(color: Colors.white)),
         ),
-        items: items
-            .map((item) => DropdownMenuItem<T>(
-          value: item,
-          child: Text(item.toString(),
-              style: TextStyle(color: Colors.white)),
-        ))
-            .toList(),
+        items: items.map((item) {
+          return DropdownMenuItem<T>(
+            value: item,
+            child: Text(item.toString(), style: TextStyle(color: Colors.white)),
+          );
+        }).toList(),
         onChanged: onChanged,
       ),
     );
