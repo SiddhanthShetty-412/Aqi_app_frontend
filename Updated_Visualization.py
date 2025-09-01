@@ -1,24 +1,24 @@
 import pandas as pd
 import matplotlib
-matplotlib.use('Agg')  # Use non-interactive backend for Flask
+matplotlib.use('Agg')  
 import matplotlib.pyplot as plt
 import seaborn as sns
 from io import BytesIO
 import base64
 import os
-# Get the absolute path of the directory this script is in
+
 base_dir = os.path.dirname(os.path.abspath(__file__))
 file_path = os.path.join(base_dir, "Final_Dataset.csv")
 
-# Read the dataset
+
 df = pd.read_csv(file_path)
 
-# Helper function to convert matplotlib plots to base64 strings
+
 def plot_to_base64():
-    fig = plt.gcf()  # Get current figure
+    fig = plt.gcf()  
     buf = BytesIO()
     fig.savefig(buf, format='png', bbox_inches='tight')
-    plt.close(fig)  # Explicitly close THIS figure only
+    plt.close(fig)  
     buf.seek(0)
     return base64.b64encode(buf.read()).decode('utf-8')
 
@@ -45,7 +45,7 @@ def plot_pollutant_contribution(month):
     pollutant_sums = pollutant_sums[pollutant_sums > 0]
 
     if pollutant_sums.empty:
-        return None  # No valid data to plot
+        return None  
 
     plt.figure(figsize=(8, 8))
     plt.pie(pollutant_sums, labels=pollutant_sums.index, autopct="%1.1f%%",
